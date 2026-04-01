@@ -40,16 +40,26 @@ public class OrderService {
             throw new RuntimeException("Cart is empty");
         }
 
-        List<Product> products = new ArrayList<>();
-        double totalPrice = 0;
+        Order order = new Order();
+        order.setUser(user);
+        order.setProducts(new ArrayList<>());
+        order.setShippingAddress(shippingAddress);
+        order.setPaymentStatus("PENDING");
+        order.setOrderStatus("PLACED");
+
+        double totalPrice = 0.0;
 
         for (CartItem cartItem : cartItems) {
+
+            if (cartItem == null || cartItem.getProduct() == null) {
+                throw new RuntimeException("Invalid cart item");
+            }
 
             Product product = cartItem.getProduct();
 
             if (product.getStockQuantity() < cartItem.getQuantity()) {
                 throw new RuntimeException(
-                        "Insufficient stock for product: " + product.getName()
+                        "Insufficient stock for " + product.getName()
                 );
             }
 
@@ -59,26 +69,21 @@ public class OrderService {
 
             productRepository.save(product);
 
-            products.add(product);
+            order.getProducts().add(product);
+
             totalPrice += product.getPrice() * cartItem.getQuantity();
         }
 
-        Order order = new Order();
-        order.setUser(user);
-        order.setProducts(products);
         order.setTotalPrice(totalPrice);
-        order.setShippingAddress(shippingAddress);
-        order.setPaymentStatus("PENDING");
-        order.setOrderStatus("CREATED");
 
         Order savedOrder = orderRepository.save(order);
 
-        cartRepository.deleteByUser(user);
+        cartRepository.deleteAll(cartItems);
 
         return savedOrder;
     }
 
-    public List<Order> getUserOrders(String email) {
+    public List<Order> getOrders(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -95,7 +100,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("You can only view your own orders");
+            throw new RuntimeException("Access denied");
         }
 
         return order;

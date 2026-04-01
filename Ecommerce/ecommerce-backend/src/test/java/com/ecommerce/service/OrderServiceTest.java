@@ -48,17 +48,5 @@ public class OrderServiceTest {
 
         Product product = new Product();
         product.setId(1L);
-        product.setName("Phone");
-        product.setPrice(1000.0);
-        product.setStockQuantity(5);
-
-        CartItem cartItem = new CartItem();
-        cartItem.setUser(user);
-        cartItem.setProduct(product);
-        cartItem.setQuantity(1);
-
-        when(userRepository.findByEmail("sayali@test.com"))
-                .thenReturn(Optional.of(user));
-
-        when(cartRepository.findByUser(user));
+        product.setName("Laptop");
 }}

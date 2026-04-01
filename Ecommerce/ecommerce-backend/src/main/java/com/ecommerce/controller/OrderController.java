@@ -18,8 +18,9 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<Order> placeOrder(Authentication authentication,
-                                            @RequestParam String shippingAddress) {
+    public ResponseEntity<Order> placeOrder(
+            Authentication authentication,
+            @RequestParam String shippingAddress) {
 
         Order order = orderService.placeOrder(
                 authentication.getName(),
@@ -30,18 +31,26 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> getOrders(Authentication authentication) {
-        return ResponseEntity.ok(
-                orderService.getUserOrders(authentication.getName())
+    public ResponseEntity<List<Order>> getOrders(
+            Authentication authentication) {
+
+        List<Order> orders = orderService.getOrders(
+                authentication.getName()
         );
+
+        return ResponseEntity.ok(orders);
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrder(Authentication authentication,
-                                          @PathVariable Long orderId) {
+    public ResponseEntity<Order> getOrderById(
+            Authentication authentication,
+            @PathVariable Long orderId) {
 
-        return ResponseEntity.ok(
-                orderService.getOrderById(authentication.getName(), orderId)
+        Order order = orderService.getOrderById(
+                authentication.getName(),
+                orderId
         );
+
+        return ResponseEntity.ok(order);
     }
 }
