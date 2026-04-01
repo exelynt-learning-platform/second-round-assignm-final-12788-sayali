@@ -49,4 +49,10 @@ public class OrderServiceTest {
         Product product = new Product();
         product.setId(1L);
         product.setName("Laptop");
+        product.setPrice(50000.0);
+        product.setStockQuantity(5);
+
+        CartItem cartItem = new CartItem();
+        cartItem.setProduct(product);
+        cartItem.setQuantity(1);
 }}
