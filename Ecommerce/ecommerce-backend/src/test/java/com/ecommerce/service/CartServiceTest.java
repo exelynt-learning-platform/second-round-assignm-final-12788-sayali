@@ -52,5 +52,6 @@ public class CartServiceTest {
         when(productRepository.findById(1L))
                 .thenReturn(Optional.of(product));
 
-        when(cartRepository.findByUserAndProduct(user, product));
+        when(cartRepository.findByUserAndProduct(user, product))
+                .thenReturn(Optional.empty());
 }}

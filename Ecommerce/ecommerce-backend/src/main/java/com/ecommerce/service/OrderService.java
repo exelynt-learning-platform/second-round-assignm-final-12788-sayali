@@ -8,6 +8,7 @@ import com.ecommerce.repository.CartRepository;
 import com.ecommerce.repository.OrderRepository;
 import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional
 public class OrderService {
 
     @Autowired
@@ -36,17 +38,11 @@ public class OrderService {
 
         List<CartItem> cartItems = cartRepository.findByUser(user);
 
-        if (cartItems.isEmpty()) {
+        if (cartItems == null || cartItems.isEmpty()) {
             throw new RuntimeException("Cart is empty");
         }
 
-        Order order = new Order();
-        order.setUser(user);
-        order.setProducts(new ArrayList<>());
-        order.setShippingAddress(shippingAddress);
-        order.setPaymentStatus("PENDING");
-        order.setOrderStatus("PLACED");
-
+        List<Product> products = new ArrayList<>();
         double totalPrice = 0.0;
 
         for (CartItem cartItem : cartItems) {
@@ -56,6 +52,10 @@ public class OrderService {
             }
 
             Product product = cartItem.getProduct();
+
+            if (cartItem.getQuantity() == null || cartItem.getQuantity() <= 0) {
+                throw new RuntimeException("Invalid quantity");
+            }
 
             if (product.getStockQuantity() < cartItem.getQuantity()) {
                 throw new RuntimeException(
@@ -69,12 +69,18 @@ public class OrderService {
 
             productRepository.save(product);
 
-            order.getProducts().add(product);
+            products.add(product);
 
             totalPrice += product.getPrice() * cartItem.getQuantity();
         }
 
+        Order order = new Order();
+        order.setUser(user);
+        order.setProducts(products);
         order.setTotalPrice(totalPrice);
+        order.setShippingAddress(shippingAddress);
+        order.setPaymentStatus("PENDING");
+        order.setOrderStatus("PLACED");
 
         Order savedOrder = orderRepository.save(order);
 
@@ -83,7 +89,7 @@ public class OrderService {
         return savedOrder;
     }
 
-    public List<Order> getOrders(String email) {
+    public List<Order> getUserOrders(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -100,7 +106,7 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Access denied");
+            throw new RuntimeException("Unauthorized access");
         }
 
         return order;

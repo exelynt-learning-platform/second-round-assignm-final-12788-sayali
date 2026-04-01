@@ -34,7 +34,7 @@ public class OrderController {
     public ResponseEntity<List<Order>> getOrders(
             Authentication authentication) {
 
-        List<Order> orders = orderService.getOrders(
+        List<Order> orders = orderService.getUserOrders(
                 authentication.getName()
         );
 
